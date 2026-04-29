@@ -1,0 +1,48 @@
+{
+  "target_account": {
+    "email": "send@aicoding.space",
+    "comment": "The account you are warming up"
+  },
+  "seed_accounts": [
+    {
+      "email": "warmup.seed.01@gmail.com",
+      "password": "xxxx xxxx xxxx xxxx",
+      "smtp_host": "smtp.gmail.com",
+      "smtp_port": 587,
+      "imap_host": "imap.gmail.com",
+      "imap_port": 993
+    },
+    {
+      "email": "warmup.seed.02@gmail.com",
+      "password": "xxxx xxxx xxxx xxxx",
+      "smtp_host": "smtp.gmail.com",
+      "smtp_port": 587,
+      "imap_host": "imap.gmail.com",
+      "imap_port": 993
+    },
+    {
+      "email": "warmup.seed.03@outlook.com",
+      "password": "xxxx xxxx xxxx xxxx",
+      "smtp_host": "smtp.office365.com",
+      "smtp_port": 587,
+      "imap_host": "outlook.office365.com",
+      "imap_port": 993
+    },
+    {
+      "email": "warmup.seed.04@outlook.com",
+      "password": "xxxx xxxx xxxx xxxx",
+      "smtp_host": "smtp.office365.com",
+      "smtp_port": 587,
+      "imap_host": "outlook.office365.com",
+      "imap_port": 993
+    },
+    {
+      "email": "warmup.seed.05@yandex.ru",
+      "password": "xxxx xxxx xxxx xxxx",
+      "smtp_host": "smtp.yandex.ru",
+      "smtp_port": 587,
+      "imap_host": "imap.yandex.ru",
+      "imap_port": 993
+    }
+  ]
+}
