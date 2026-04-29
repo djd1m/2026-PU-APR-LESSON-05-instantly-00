@@ -53,10 +53,20 @@ async def _send_campaign_background(
     """Background task: send emails to all 'new' leads in a campaign."""
     from models.database import AsyncSessionLocal
 
+    from models import UserSettings
+
     async with AsyncSessionLocal() as db:
         try:
+            # Check user settings for OpenAI API key
+            from sqlalchemy import select
+            result = await db.execute(
+                select(UserSettings).where(UserSettings.user_id == user_id)
+            )
+            user_settings = result.scalar_one_or_none()
+            openai_key = (user_settings.openai_api_key if user_settings else None) or None
+
             sender = EmailSenderService(db)
-            ai_service = AIPersonalizationService()
+            ai_service = AIPersonalizationService(api_key=openai_key)
             await sender.send_campaign_emails(
                 campaign_id=campaign_id,
                 campaign_step_id=campaign_step_id,

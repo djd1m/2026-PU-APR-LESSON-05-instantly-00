@@ -53,9 +53,9 @@ def _render_template(template: str, lead: Lead) -> str:
 class AIPersonalizationService:
     """Wraps OpenAI GPT-4 for email personalization with fallback."""
 
-    def __init__(self, client: AsyncOpenAI | None = None) -> None:
+    def __init__(self, client: AsyncOpenAI | None = None, api_key: str | None = None) -> None:
         self._client = client or AsyncOpenAI(
-            api_key=settings.openai_api_key,
+            api_key=api_key or settings.openai_api_key,
             timeout=settings.openai_timeout,
             max_retries=0,  # We handle retries ourselves via tenacity
         )

@@ -10,6 +10,7 @@ import CampaignForm from './pages/CampaignForm'
 import Leads from './pages/Leads'
 import Accounts from './pages/Accounts'
 import Analytics from './pages/Analytics'
+import Settings from './pages/Settings'
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/leads" element={<Leads />} />
           <Route path="/accounts" element={<Accounts />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

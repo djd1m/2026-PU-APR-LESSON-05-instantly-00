@@ -182,7 +182,7 @@ async def start_warmup(
 ) -> dict:
     """Start or resume email warmup for an account."""
     account = await _get_account_owned(account_id, current_user, db)
-    service = WarmupService(db)
+    service = WarmupService(db, user_id=current_user.id)
     account = await service.start_warmup(account)
     return await service.get_status(account)
 
@@ -195,7 +195,7 @@ async def pause_warmup(
 ) -> dict:
     """Pause email warmup."""
     account = await _get_account_owned(account_id, current_user, db)
-    service = WarmupService(db)
+    service = WarmupService(db, user_id=current_user.id)
     account = await service.pause_warmup(account)
     return await service.get_status(account)
 
@@ -210,7 +210,7 @@ async def advance_warmup_day(
     account = await _get_account_owned(account_id, current_user, db)
     if account.warmup_status != "warming":
         raise HTTPException(status_code=400, detail="Account is not currently warming up")
-    service = WarmupService(db)
+    service = WarmupService(db, user_id=current_user.id)
     # Simulate some sends for demo
     account.warmup_sent_today = account.warmup_daily_target
     await service.advance_day(account)
@@ -225,5 +225,5 @@ async def get_warmup_status(
 ) -> dict:
     """Get current warmup status and history."""
     account = await _get_account_owned(account_id, current_user, db)
-    service = WarmupService(db)
+    service = WarmupService(db, user_id=current_user.id)
     return await service.get_status(account)

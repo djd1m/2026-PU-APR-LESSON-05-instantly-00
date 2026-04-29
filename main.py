@@ -21,6 +21,7 @@ from routers.auth import router as auth_router
 from routers.campaigns import router as campaigns_router
 from routers.emails import router as emails_router
 from routers.leads import router as leads_router
+from routers.settings import router as settings_router
 
 # ---------------------------------------------------------------------------
 # Logging setup
@@ -111,6 +112,7 @@ app.include_router(campaigns_router)
 app.include_router(leads_router)
 app.include_router(emails_router)
 app.include_router(analytics_router)
+app.include_router(settings_router)
 
 
 # ---------------------------------------------------------------------------

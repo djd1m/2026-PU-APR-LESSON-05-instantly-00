@@ -19,7 +19,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import settings
-from models import EmailAccount, WarmupLog
+from models import EmailAccount, UserSettings, WarmupLog
 
 logger = logging.getLogger(__name__)
 
@@ -35,20 +35,41 @@ WARMUP_READY_SCORE = 85
 MAX_BOUNCE_RATE = 5.0  # percent — auto-pause threshold
 
 
-def _get_warmup_mode() -> str:
-    """Determine warmup mode based on configuration."""
-    if settings.mailivery_api_key:
-        return "mailivery"
-    return "demo"
-
-
 class WarmupService:
-    def __init__(self, db: AsyncSession) -> None:
+    def __init__(self, db: AsyncSession, user_id: str | None = None) -> None:
         self.db = db
-        self.mode = _get_warmup_mode()
+        self.user_id = user_id
+        self._mailivery_key: str | None = None
+        self.mode = "demo"  # resolved lazily in _resolve_mode
+
+    async def _resolve_mode(self) -> str:
+        """Determine warmup mode: check user settings (DB) → env var → demo."""
+        if self.mode != "demo":
+            return self.mode
+
+        # 1. Check user settings in DB
+        if self.user_id:
+            result = await self.db.execute(
+                select(UserSettings).where(UserSettings.user_id == self.user_id)
+            )
+            user_settings = result.scalar_one_or_none()
+            if user_settings and user_settings.mailivery_api_key:
+                self._mailivery_key = user_settings.mailivery_api_key
+                self.mode = "mailivery"
+                return self.mode
+
+        # 2. Fallback to env var
+        if settings.mailivery_api_key:
+            self._mailivery_key = settings.mailivery_api_key
+            self.mode = "mailivery"
+            return self.mode
+
+        return "demo"
 
     async def start_warmup(self, account: EmailAccount) -> EmailAccount:
         """Start or resume warmup for an account."""
+        await self._resolve_mode()
+
         if account.warmup_status == "ready":
             logger.info("Account %s already warmed up (score=%d)", account.id, account.warmup_score)
             return account
@@ -74,6 +95,7 @@ class WarmupService:
 
     async def pause_warmup(self, account: EmailAccount) -> EmailAccount:
         """Pause warmup."""
+        await self._resolve_mode()
         if self.mode == "mailivery" and account.mailivery_campaign_id:
             await self._mailivery_pause(account)
 
@@ -226,7 +248,7 @@ class WarmupService:
     async def _mailivery_start(self, account: EmailAccount) -> None:
         """Connect mailbox to Mailivery and start warmup."""
         from services.mailivery_client import MailiveryClient, MailiveryError
-        client = MailiveryClient()
+        client = MailiveryClient(api_key=self._mailivery_key)
 
         try:
             # Connect if not already connected
@@ -254,7 +276,7 @@ class WarmupService:
     async def _mailivery_pause(self, account: EmailAccount) -> None:
         """Pause warmup in Mailivery."""
         from services.mailivery_client import MailiveryClient, MailiveryError
-        client = MailiveryClient()
+        client = MailiveryClient(api_key=self._mailivery_key)
         try:
             await client.pause_warmup(account.mailivery_campaign_id)
         except MailiveryError as e:

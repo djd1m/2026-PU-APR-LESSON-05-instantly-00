@@ -87,6 +87,29 @@ class User(Base):
     campaigns: Mapped[list["Campaign"]] = relationship(
         "Campaign", back_populates="user", lazy="noload"
     )
+    settings: Mapped["UserSettings | None"] = relationship(
+        "UserSettings", back_populates="user", uselist=False, lazy="noload", cascade="all, delete-orphan"
+    )
+
+
+class UserSettings(Base):
+    """Per-user platform settings (API keys, preferences)."""
+    __tablename__ = "user_settings"
+
+    id: Mapped[str] = mapped_column(
+        UUID(as_uuid=False), primary_key=True, default=_uuid
+    )
+    user_id: Mapped[str] = mapped_column(
+        UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False, unique=True, index=True,
+    )
+    mailivery_api_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    openai_api_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, onupdate=_now, nullable=False
+    )
+
+    user: Mapped["User"] = relationship("User", back_populates="settings", lazy="noload")
 
 
 class EmailAccount(Base):

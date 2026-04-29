@@ -5,6 +5,7 @@ import {
   UsersIcon,
   ServerIcon,
   ChartBarIcon,
+  Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
 } from '@heroicons/react/24/outline';
 import { useAuthStore } from '../store/auth';
@@ -15,6 +16,7 @@ const navItems = [
   { label: 'Leads', icon: UsersIcon, to: '/leads' },
   { label: 'Email Accounts', icon: ServerIcon, to: '/accounts' },
   { label: 'Analytics', icon: ChartBarIcon, to: '/analytics' },
+  { label: 'Settings', icon: Cog6ToothIcon, to: '/settings' },
 ];
 
 export default function Sidebar() {
