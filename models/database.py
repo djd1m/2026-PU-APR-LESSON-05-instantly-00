@@ -176,6 +176,7 @@ class Campaign(Base):
     status: Mapped[str] = mapped_column(String(20), default="draft", nullable=False)
     from_name: Mapped[str] = mapped_column(String(255), nullable=False)
     from_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    reply_to: Mapped[str | None] = mapped_column(String(255), nullable=True)
     subject_template: Mapped[str] = mapped_column(Text, nullable=False)
     body_template: Mapped[str] = mapped_column(Text, nullable=False)
     ai_personalization_enabled: Mapped[bool] = mapped_column(Boolean, default=False)

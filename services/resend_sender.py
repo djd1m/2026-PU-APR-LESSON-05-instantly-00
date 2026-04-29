@@ -24,6 +24,7 @@ class ResendEmailService:
         subject: str,
         body: str,
         campaign_step_id: str | None = None,
+        reply_to: str | None = None,
     ) -> Email:
         """Send one email via Resend API."""
         message_id = f"<{uuid.uuid4()}@resend>"
@@ -49,6 +50,8 @@ class ResendEmailService:
                 "html": f"<html><body>{body}</body></html>",
                 "text": body,
             }
+            if reply_to:
+                params["reply_to"] = [reply_to]
             result = resend.Emails.send(params)
             email_record.status = "sent"
             email_record.sent_at = datetime.now(timezone.utc)

@@ -12,6 +12,7 @@ export default function CampaignForm() {
     name: '',
     from_name: '',
     from_email: '',
+    reply_to: '',
     subject_template: '',
     body_template: '',
     ai_personalization_enabled: false,
@@ -29,6 +30,7 @@ export default function CampaignForm() {
           name: c.name || '',
           from_name: c.from_name || '',
           from_email: c.from_email || '',
+          reply_to: c.reply_to || '',
           subject_template: c.subject_template || '',
           body_template: c.body_template || '',
           ai_personalization_enabled: c.ai_personalization_enabled || false,
@@ -131,6 +133,24 @@ export default function CampaignForm() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
               required
             />
+          </div>
+
+          <div>
+            <label htmlFor="reply_to" className="block text-sm font-medium text-gray-700 mb-1">
+              Reply-To Email
+            </label>
+            <input
+              id="reply_to"
+              name="reply_to"
+              type="email"
+              value={form.reply_to}
+              onChange={handleChange}
+              placeholder="your-real-inbox@gmail.com"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Replies will go to this address instead of From Email. Leave empty to use From Email.
+            </p>
           </div>
 
           <div>

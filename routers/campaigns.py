@@ -31,6 +31,7 @@ class CampaignCreate(BaseModel):
     name: str
     from_name: str
     from_email: str
+    reply_to: str | None = None
     subject_template: str
     body_template: str
     ai_personalization_enabled: bool = False
@@ -40,6 +41,7 @@ class CampaignUpdate(BaseModel):
     name: str | None = None
     from_name: str | None = None
     from_email: str | None = None
+    reply_to: str | None = None
     subject_template: str | None = None
     body_template: str | None = None
     ai_personalization_enabled: bool | None = None
@@ -55,6 +57,7 @@ class CampaignOut(BaseModel):
     status: str
     from_name: str
     from_email: str
+    reply_to: str | None
     subject_template: str
     body_template: str
     ai_personalization_enabled: bool

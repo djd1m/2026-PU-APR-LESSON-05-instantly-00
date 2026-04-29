@@ -76,6 +76,7 @@ class EmailSenderService:
         subject: str,
         body: str,
         message_id: str,
+        reply_to: str | None = None,
     ) -> None:
         """
         Send an email via SMTP with retry on transient errors.
@@ -86,6 +87,8 @@ class EmailSenderService:
         msg["From"] = f"{account.smtp_user} <{account.from_email}>"
         msg["To"] = to_email
         msg["Message-ID"] = message_id
+        if reply_to:
+            msg["Reply-To"] = reply_to
 
         msg.attach(MIMEText(body, "plain"))
         msg.attach(MIMEText(f"<html><body>{body}</body></html>", "html"))
@@ -121,6 +124,7 @@ class EmailSenderService:
         subject: str,
         body: str,
         campaign_step_id: str | None = None,
+        reply_to: str | None = None,
     ) -> Email:
         """
         Send one email to a lead using the given account.
@@ -128,7 +132,7 @@ class EmailSenderService:
 
         Returns the created Email record.
         """
-        message_id = f"<{uuid.uuid4()}@{account.smtp_host}>"
+        message_id = f"<{uuid.uuid4()}@{account.smtp_host or 'resend'}>"
         email_record = Email(
             lead_id=lead.id,
             account_id=account.id,
@@ -149,6 +153,7 @@ class EmailSenderService:
                 subject=subject,
                 body=body,
                 message_id=message_id,
+                reply_to=reply_to,
             )
             email_record.status = "sent"
             email_record.sent_at = datetime.now(timezone.utc)
@@ -248,6 +253,7 @@ class EmailSenderService:
                     subject=subject,
                     body=body,
                     campaign_step_id=campaign_step_id,
+                    reply_to=campaign.reply_to,
                 )
             else:
                 email = await self.send_single_email(
@@ -256,6 +262,7 @@ class EmailSenderService:
                     subject=subject,
                     body=body,
                     campaign_step_id=campaign_step_id,
+                    reply_to=campaign.reply_to,
                 )
 
             if email.status == "sent":
