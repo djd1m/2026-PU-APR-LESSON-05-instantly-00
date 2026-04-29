@@ -422,6 +422,20 @@ erDiagram
 
 ---
 
+## 🗺 Roadmap
+
+Подробный план развития: **[NEXTSTEPS.md](NEXTSTEPS.md)**
+
+| Приоритет | Фичи | Сроки |
+|-----------|-------|-------|
+| **P1 — Quick Wins** | Resend интеграция, CSV upload, Edit UI, Pagination | 1 неделя |
+| **P2 — Core** | Unified Inbox, Scheduling, A/B тесты, IMAP, Dark theme | 2-3 недели |
+| **P3 — Strategic** | CRM, Multi-user, Lead DB, AI Replies, Compliance | 4+ недели |
+
+**Рекомендация:** начать с **Unified Inbox** — это killer feature, за которую платят в Instantly.ai.
+
+---
+
 ## 📄 Лицензия
 
 MIT
