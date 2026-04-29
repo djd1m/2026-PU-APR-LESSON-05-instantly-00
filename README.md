@@ -30,6 +30,7 @@ Full-stack клон [Instantly.ai](https://instantly.ai) — платформы 
 - **Лиды** — одиночный и массовый CSV-импорт с дедупликацией
 - **Трекинг** — отслеживание открытий (pixel), кликов (redirect), ответов (webhook)
 - **Аналитика** — open/click/reply rate, conversion funnel, per-lead timeline
+- **Settings UI** — API ключи (Mailivery, OpenAI) настраиваются через интерфейс, не через .env
 
 ---
 
@@ -55,12 +56,15 @@ Full-stack клон [Instantly.ai](https://instantly.ai) — платформы 
 │  │ Accounts │ │  Emails  │ │  Warmup  │ │ AI Personal.   │  │
 │  │SMTP/Resnd│ │ +Tracking│ │Mailivery │ │   GPT-4        │  │
 │  └──────────┘ └──────────┘ └──────────┘ └────────────────┘  │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │  Settings (per-user API keys: Mailivery, OpenAI)        │ │
+│  └─────────────────────────────────────────────────────────┘ │
 └──────────────┬───────────────────────────────────────────────┘
                │
 ┌──────────────▼───────────────────────────────────────────────┐
 │                     PostgreSQL 15                             │
-│  Users · EmailAccounts · Campaigns · Steps · Leads · Emails  │
-│  EmailEvents · WarmupLogs                                    │
+│  Users · UserSettings · EmailAccounts · Campaigns · Steps    │
+│  Leads · Emails · EmailEvents · WarmupLogs                   │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -107,10 +111,13 @@ docker compose up -d --build
 
 1. Открыть http://localhost:5173
 2. Зарегистрировать аккаунт (Register)
-3. Добавить email account (Accounts → Add Account → выбрать Resend или SMTP)
-4. Создать кампанию (Campaigns → New Campaign)
-5. Добавить лиды (внутри кампании → вкладка Leads → Add Lead)
-6. Активировать и отправить (Activate → Send Emails)
+3. **Настроить API ключи** (Settings → ввести Mailivery и/или OpenAI ключи)
+4. Добавить email account (Accounts → Add Account → выбрать Resend или SMTP)
+5. Создать кампанию (Campaigns → New Campaign)
+6. Добавить лиды (внутри кампании → вкладка Leads → Add Lead)
+7. Активировать и отправить (Activate → Send Emails)
+
+> API ключи можно настроить через UI (Settings) — редактирование `.env` не требуется.
 
 ---
 
@@ -180,6 +187,13 @@ docker compose up -d --build
 | `GET` | `/analytics/lead/{id}/timeline` | Timeline событий лида |
 | `GET` | `/analytics/account/{id}` | Статистика email-аккаунта |
 
+### Настройки
+
+| Метод | Путь | Описание |
+|-------|------|----------|
+| `GET` | `/settings/` | Текущие настройки (ключи замаскированы) |
+| `PUT` | `/settings/` | Обновить API ключи (Mailivery, OpenAI) |
+
 > Интерактивная документация: **http://localhost:8002/docs** (Swagger UI)
 
 ---
@@ -190,13 +204,14 @@ docker compose up -d --build
 
 ### 1. Mailivery API (production)
 
-Установить `MAILIVERY_API_KEY` в `.env` — warmup автоматически использует peer-сеть Mailivery.
+Ввести API ключ через **Settings** в UI (или через `.env`). Warmup автоматически использует peer-сеть Mailivery.
 
-```env
-MAILIVERY_API_KEY=your_api_key_here
+```
+Settings → Mailivery API Key → Ввести ключ → Save
 ```
 
 Стоимость: от $49/мес за shared volume pool (unlimited mailboxes).
+Приоритет: UI Settings → `.env` → demo mode.
 
 ### 2. Self-hosted Pool (бюджетный)
 
@@ -246,7 +261,7 @@ python3 features/instantly-ai-frontend/warmup-self-hosted/warmup_pool_cron.py
 │
 ├── models/
 │   ├── __init__.py                 # Model exports
-│   └── database.py                 # SQLAlchemy models (8 таблиц)
+│   └── database.py                 # SQLAlchemy models (9 таблиц)
 │
 ├── routers/
 │   ├── auth.py                     # JWT auth (register, login, me)
@@ -254,7 +269,8 @@ python3 features/instantly-ai-frontend/warmup-self-hosted/warmup_pool_cron.py
 │   ├── campaigns.py                # Campaigns CRUD + steps + status transitions
 │   ├── leads.py                    # Leads CRUD + bulk import + unsubscribe
 │   ├── emails.py                   # Send + tracking (pixel, click, reply)
-│   └── analytics.py                # Campaign stats + lead timeline
+│   ├── analytics.py                # Campaign stats + lead timeline
+│   └── settings.py                 # Per-user settings (API keys via UI)
 │
 ├── services/
 │   ├── email_sender.py             # SMTP sending with account rotation + retry
@@ -271,7 +287,7 @@ python3 features/instantly-ai-frontend/warmup-self-hosted/warmup_pool_cron.py
 │       ├── api/client.js           # Fetch wrapper (JWT, error handling)
 │       ├── store/auth.js           # Zustand auth store
 │       ├── components/             # Layout, Sidebar, Modal, StatusBadge, MetricCard
-│       └── pages/                  # Dashboard, Campaigns, Leads, Accounts, Analytics
+│       └── pages/                  # Dashboard, Campaigns, Leads, Accounts, Analytics, Settings
 │
 ├── features/
 │   └── instantly-ai-frontend/
@@ -285,14 +301,25 @@ python3 features/instantly-ai-frontend/warmup-self-hosted/warmup_pool_cron.py
 
 ## ⚙️ Конфигурация
 
-Все настройки через переменные окружения (файл `.env`):
+### Через UI (рекомендуется)
+
+API ключи настраиваются на странице **Settings** в веб-интерфейсе. Ключи хранятся per-user в базе данных и никогда не показываются полностью после сохранения.
+
+| Ключ | Назначение | Где получить |
+|------|-----------|-------------|
+| **Mailivery API Key** | Email warmup через peer-сеть | [mailivery.io](https://mailivery.io) |
+| **OpenAI API Key** | AI-персонализация email (GPT-4) | [platform.openai.com](https://platform.openai.com/api-keys) |
+
+Приоритет: **UI Settings** → переменные окружения → demo mode.
+
+### Через переменные окружения (fallback)
 
 | Переменная | По умолчанию | Описание |
 |-----------|-------------|----------|
 | `DATABASE_URL` | `postgresql+asyncpg://...` | Строка подключения к PostgreSQL |
 | `SECRET_KEY` | `change-me...` | Ключ подписи JWT (обязательно сменить!) |
-| `OPENAI_API_KEY` | — | Ключ OpenAI для AI-персонализации |
-| `MAILIVERY_API_KEY` | — | Ключ Mailivery для warmup (опционально) |
+| `OPENAI_API_KEY` | — | Fallback для AI-персонализации |
+| `MAILIVERY_API_KEY` | — | Fallback для warmup |
 | `DEBUG` | `false` | Режим отладки (SQL echo, hot reload) |
 | `CORS_ORIGINS` | `["http://localhost:5173"]` | Разрешённые origins |
 
@@ -345,6 +372,7 @@ pytest -v
 
 ```mermaid
 erDiagram
+    User ||--o| UserSettings : has
     User ||--o{ EmailAccount : owns
     User ||--o{ Campaign : creates
     Campaign ||--o{ CampaignStep : contains
@@ -359,6 +387,13 @@ erDiagram
         string email UK
         string hashed_password
         bool is_active
+    }
+
+    UserSettings {
+        uuid id PK
+        uuid user_id FK
+        string mailivery_api_key
+        string openai_api_key
     }
 
     EmailAccount {
