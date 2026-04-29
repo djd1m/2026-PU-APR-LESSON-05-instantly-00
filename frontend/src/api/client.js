@@ -26,6 +26,9 @@ async function request(url, options = {}) {
     throw { detail: body.detail || body.message || response.statusText };
   }
 
+  if (response.status === 204 || response.headers.get('content-length') === '0') {
+    return null;
+  }
   return response.json();
 }
 
